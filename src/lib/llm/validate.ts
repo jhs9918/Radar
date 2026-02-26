@@ -18,7 +18,7 @@ function extractJSON(raw: string): string {
  */
 function zodPathsFromError(err: unknown): string[] {
   if (!(err instanceof z.ZodError)) return [];
-  return err.errors.map((e) => {
+  return err.issues.map((e) => {
     const parts = e.path.map((p, i) =>
       typeof p === "number" ? `[${p}]` : (i === 0 ? p : `.${p}`)
     );
