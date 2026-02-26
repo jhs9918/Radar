@@ -1,0 +1,54 @@
+REQUEST FOR PROPOSAL
+City of Riverton — Integrated Financial Management System Upgrade
+
+RFP Number: RIV-2024-FMS-001
+Issue Date: February 1, 2024
+Proposal Due: March 15, 2024, 4:00 PM CST
+
+1. INTRODUCTION
+The City of Riverton seeks proposals to upgrade its Integrated Financial Management System.
+The City currently operates SAP ECC 6.0 and wishes to modernize to a current-generation
+ERP solution while preserving all existing configurations, custom reports, and workflows.
+
+2. MANDATORY VENDOR QUALIFICATIONS
+Bidders must meet ALL of the following criteria to be considered:
+
+a) Product experience: Vendor must have successfully implemented SAP S/4HANA Public Cloud
+   at a minimum of three (3) US municipal government clients within the past three (3) years.
+   Note: the City currently uses SAP ECC 6.0; the upgrade must maintain all current
+   SAP ECC modules and configurations with zero data loss.
+
+b) Local presence: Vendor must maintain a physical staffed office within 50 miles of
+   Riverton City Hall (123 Main Street, Riverton). Remote-only firms are not eligible.
+
+c) References: All three client references must be US municipal governments with a
+   population between 50,000 and 200,000 residents. References from counties, states,
+   or federal agencies will not be accepted.
+
+d) Certification: Designated project manager must hold a valid SAP Certified Application
+   Associate — SAP S/4HANA for Financial Accounting certification at time of proposal.
+
+3. EVALUATION CRITERIA
+- SAP S/4HANA Municipal Experience: 40%
+- Local Office Presence & On-site Availability: 20%
+- Technical Implementation Approach: 25%
+- Cost: 15%
+
+4. SCOPE OF WORK
+The selected vendor shall:
+- Upgrade the existing SAP ECC 6.0 system to SAP S/4HANA, maintaining all current
+  configuration, custom ABAP reports, and workflow integrations
+- Ensure seamless transition from the current system with no disruption to City payroll,
+  accounts payable, or general ledger processes during cutover
+- Provide familiarity with the City's existing financial processes and chart of accounts
+- Deliver training for 120 Finance Department staff
+
+5. TIMELINE
+- Proposals Due: March 15, 2024
+- Vendor Presentations (shortlisted only): April 1–5, 2024
+- Contract Award: May 1, 2024
+- System Go-Live: December 31, 2024
+
+6. BUDGET
+The City has not disclosed a budget for this engagement. Vendors should propose a
+total fixed-price cost inclusive of all licenses, implementation, and 3 years of support.
