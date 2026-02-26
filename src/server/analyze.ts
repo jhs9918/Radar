@@ -72,7 +72,8 @@ export async function analyzeRFP(
         0   // maxRetries = 0
       );
       return { result, meta: { partial: false, plan: "free" } };
-    } catch {
+    } catch (e) {
+      console.error("[analyzeRFP] free-tier failed:", e instanceof Error ? e.message : String(e));
       const hint =
         "AI output could not be parsed. For best results, paste sections that include " +
         "headings like Timeline, Evaluation Criteria, and Submission Requirements.";
