@@ -109,7 +109,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t">
         <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between text-xs text-muted-foreground">
-          <span>© 2024 RFP Radar</span>
+          <span>© 2026 RFP Radar</span>
           <div className="flex gap-4">
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
