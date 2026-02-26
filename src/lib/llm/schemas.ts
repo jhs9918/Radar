@@ -25,9 +25,9 @@ export function isGoodSource(s: string): boolean {
 // ---------------------------------------------------------------------------
 export const ExecutiveSummarySchema = z.object({
   meta: z.object({
-    doc_type: z.enum(["RFP", "RFQ", "Brief", "Other"]),
-    industry_guess: z.array(z.string()).max(3), // e.g. ["Government", "Technology"]
-    confidence: z.number().min(0).max(1),
+    doc_type: z.enum(["RFP", "RFQ", "Brief", "Other"]).catch("Other"),
+    industry_guess: z.array(z.string()).max(3).catch([]), // e.g. ["Government", "Technology"]
+    confidence: z.number().min(0).max(1).catch(0.5),
   }),
   key_dates: z.array(
     z.object({
@@ -60,7 +60,7 @@ export const ExecutiveSummarySchema = z.object({
   risk_indicators: z.array(
     z.object({
       item: z.string(),
-      severity: z.enum(["LOW", "MED", "HIGH"]),
+      severity: z.enum(["LOW", "MED", "HIGH"]).catch("MED"),
       source: SourceField,
     })
   ),
@@ -82,7 +82,7 @@ export const ClarifyingQuestionsSchema = z.object({
         "Evaluation",
         "Submission",
         "Other",
-      ]),
+      ]).catch("Other"),
       question: z.string(),
       why_it_matters: z.string(),
       reference: SourceField,
@@ -108,12 +108,12 @@ export const ProposalOutlineSchema = z.object({
 // Schema 4: Go/No-Go
 // ---------------------------------------------------------------------------
 export const GoNoGoSchema = z.object({
-  recommendation: z.enum(["GO", "MAYBE", "NO_GO"]),
+  recommendation: z.enum(["GO", "MAYBE", "NO_GO"]).catch("MAYBE"),
   top_reasons: z.array(z.string()),
   risk_flags: z.array(
     z.object({
       flag: z.string(),
-      severity: z.enum(["LOW", "MED", "HIGH"]),
+      severity: z.enum(["LOW", "MED", "HIGH"]).catch("MED"),
       reference: SourceField,
     })
   ),

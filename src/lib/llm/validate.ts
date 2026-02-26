@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { z } from "zod";
 import { callLLM } from "./client";
 
@@ -12,8 +13,31 @@ function extractJSON(raw: string): string {
   return raw.trim();
 }
 
+/** SHA-256 prefix — identifies the response without storing content. */
+function shortHash(s: string): string {
+  return createHash("sha256").update(s).digest("hex").slice(0, 12);
+}
+
 /**
- * Extract human-readable field paths from a ZodError message string.
+ * Safe parse-failure logger.
+ * Always logs: error message, response length, content hash.
+ * Only logs a raw snippet when LOG_LLM_RAW=true (local dev only).
+ * Never logs API keys or full document content.
+ */
+function logParseError(label: string, raw: string, err: unknown): void {
+  const entry: Record<string, unknown> = {
+    error: err instanceof Error ? err.message : String(err),
+    raw_length: raw.length,
+    raw_hash: shortHash(raw),
+  };
+  if (process.env.LOG_LLM_RAW === "true") {
+    entry.raw_snippet = raw.slice(0, 200);
+  }
+  console.error(label, entry);
+}
+
+/**
+ * Extract human-readable field paths from a ZodError.
  * e.g.  ["goNoGo","risk_flags",4,"reference"]  →  "goNoGo.risk_flags[4].reference"
  */
 function zodPathsFromError(err: unknown): string[] {
@@ -64,17 +88,10 @@ export async function validateWithRetry<T>(
   } catch (err) {
     firstError = err;
     if (maxRetries === 0) {
-      console.error("[LLM] Parse failed (free tier, no retry).", {
-        error: firstError instanceof Error ? firstError.message : String(firstError),
-        raw: raw.slice(0, 800),
-      });
+      logParseError("[LLM] Parse failed (free tier, no retry).", raw, firstError);
       throw firstError;
     }
-
-    console.error("[LLM] First attempt failed, retrying.", {
-      error: firstError instanceof Error ? firstError.message : String(firstError),
-      raw: raw.slice(0, 500),
-    });
+    logParseError("[LLM] First attempt failed, retrying.", raw, firstError);
   }
 
   const retryRaw = await callLLM(buildFixPrompt(raw, firstError), systemPrompt);
@@ -83,10 +100,7 @@ export async function validateWithRetry<T>(
     const parsed = JSON.parse(extractJSON(retryRaw));
     return schema.parse(parsed);
   } catch (secondError) {
-    console.error("[LLM] Retry also failed.", {
-      error: secondError instanceof Error ? secondError.message : String(secondError),
-      raw: retryRaw.slice(0, 500),
-    });
+    logParseError("[LLM] Retry also failed.", retryRaw, secondError);
     throw new Error("AI output could not be validated after retry. Please try again.");
   }
 }
