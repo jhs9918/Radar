@@ -15,11 +15,15 @@ import { validateAccessCode, FREE_CHAR_LIMIT } from "@/src/lib/plans";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  console.log("[analyze] POST received");
+
   // ── 0. Env check ──────────────────────────────────────────────────────
   const envCheck = checkEnvVars();
   if (!envCheck.ok) {
+    console.error("[analyze] env check failed:", envCheck.message);
     return NextResponse.json({ error: envCheck.message }, { status: 503 });
   }
+  console.log("[analyze] env ok, provider:", process.env.LLM_PROVIDER ?? "anthropic", "model:", process.env.LLM_MODEL ?? "(default)");
 
   const ip = extractIP(req);
   const ua = req.headers.get("user-agent") ?? "unknown";
