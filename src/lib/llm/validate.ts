@@ -20,7 +20,7 @@ function zodPathsFromError(err: unknown): string[] {
   if (!(err instanceof z.ZodError)) return [];
   return err.issues.map((e) => {
     const parts = e.path.map((p, i) =>
-      typeof p === "number" ? `[${p}]` : (i === 0 ? p : `.${p}`)
+      typeof p === "number" ? `[${p}]` : (i === 0 ? String(p) : `.${String(p)}`)
     );
     return parts.join("") + ` — ${e.message}`;
   });
