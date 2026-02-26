@@ -63,7 +63,13 @@ export async function validateWithRetry<T>(
     return schema.parse(parsed);
   } catch (err) {
     firstError = err;
-    if (maxRetries === 0) throw firstError;
+    if (maxRetries === 0) {
+      console.error("[LLM] Parse failed (free tier, no retry).", {
+        error: firstError instanceof Error ? firstError.message : String(firstError),
+        raw: raw.slice(0, 800),
+      });
+      throw firstError;
+    }
 
     console.error("[LLM] First attempt failed, retrying.", {
       error: firstError instanceof Error ? firstError.message : String(firstError),

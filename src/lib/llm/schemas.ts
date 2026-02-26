@@ -5,17 +5,11 @@ import { z } from "zod";
 // Every "source" / "reference" must start with "Section:" or "Quote:"
 // and Quotes must be ≤ 25 words.
 // ---------------------------------------------------------------------------
-const SourceField = z
-  .string()
-  .regex(
-    /^(Section:|Quote:)/,
-    'Source must start with "Section:" or "Quote:" — never "RFP Document"'
-  )
-  .refine((s) => {
-    if (!s.startsWith("Quote:")) return true;
-    const words = s.slice("Quote:".length).trim().split(/\s+/).filter(Boolean);
-    return words.length <= 25;
-  }, "Quote must be ≤ 25 words");
+// Accept any non-empty string — source quality is checked separately via
+// isGoodSource() in collectBadSources(). Hard schema rejection caused too
+// many false-negative parse failures when the model used slightly different
+// citation formats.
+const SourceField = z.string().min(1);
 
 export function isGoodSource(s: string): boolean {
   if (!s.startsWith("Section:") && !s.startsWith("Quote:")) return false;
