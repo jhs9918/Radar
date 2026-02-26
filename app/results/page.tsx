@@ -12,6 +12,7 @@ import { OutlineTab } from "@/src/ui/components/OutlineTab";
 import { GoNoGoTab } from "@/src/ui/components/GoNoGoTab";
 import { PlanBadge } from "@/src/ui/components/PlanBadge";
 import { UnlockModal } from "@/src/ui/components/UnlockModal";
+import { FeedbackButton } from "@/src/ui/components/FeedbackButton";
 import type { AnalysisResult } from "@/src/lib/llm/schemas";
 import type { AnalyzeMeta, ClientPlan } from "@/src/lib/plans";
 import { exportToMarkdown } from "@/src/lib/export/markdown";
@@ -155,7 +156,8 @@ export default function ResultsPage() {
             RFP Radar
           </Link>
           <div className="flex gap-3 items-center">
-            <PlanBadge quotaRemaining={meta?.quota_remaining} />
+            <FeedbackButton page="results" />
+            <PlanBadge quotaRemaining={meta?.quota_remaining} creditsRemaining={meta?.credits_remaining} />
             <span className={`text-xs font-semibold px-2.5 py-1 rounded border ${recBadge}`}>
               {result.goNoGo.recommendation.replace("_", "-")}
             </span>

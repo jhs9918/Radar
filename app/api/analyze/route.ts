@@ -8,6 +8,8 @@ import {
   decrementQuota,
   checkCodeUsage,
   decrementCodeUsage,
+  getCredits,
+  decrementCredits,
   extractIP,
 } from "@/src/lib/rate-limiter";
 import { validateAccessCode, FREE_CHAR_LIMIT } from "@/src/lib/plans";
@@ -38,13 +40,19 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 2. Server-authoritative plan detection ────────────────────────────
-  //   Client sends X-Access-Code; server validates expiry + revoke list.
-  //   isPaid is NEVER derived from a client trust flag.
+  //   Priority: Pro access code > credits > free
+  //   isPaid: valid Pro code     → full retry, no char limit, no monthly quota
+  //   isCredits: server credits  → full retry, no char limit, no monthly quota, costs 1 credit
+  //   Neither                    → free tier rules apply
   const accessCode     = req.headers.get("x-access-code") ?? "";
   const codeValidation = validateAccessCode(accessCode);
   const isPaid         = codeValidation.valid;
 
-  // ── 3a. Paid-tier: per-code monthly usage cap (optional) ──────────────
+  const creditsBalance = !isPaid ? getCredits(ip, ua) : 0;
+  const isCredits      = !isPaid && creditsBalance > 0;
+  const effectivelyPaid = isPaid || isCredits;
+
+  // ── 3a. Pro code: per-code monthly usage cap ──────────────────────────
   if (isPaid) {
     const codeCheck = checkCodeUsage(accessCode);
     if (!codeCheck.ok) {
@@ -55,10 +63,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 3b. Free-tier: monthly quota by IP + UA fingerprint ───────────────
-  if (!isPaid) {
+  // ── 3b. Free/credits: monthly quota by IP + UA fingerprint ───────────
+  if (!effectivelyPaid) {
     const quotaCheck = checkQuota(ip, ua);
     if (!quotaCheck.ok) {
+      console.log("[event]", { name: "quota_blocked", plan: "free", timestamp: new Date().toISOString() });
       return NextResponse.json(
         {
           error: `Free tier monthly limit reached (${FREE_MONTHLY_QUOTA_MSG} analyses/month). Enter an access code to continue.`,
@@ -98,8 +107,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── 4. Free-tier character limit ─────────────────────────────────────
-    if (!isPaid && rfpText.length > FREE_CHAR_LIMIT) {
+    // ── 4. Character limit (free only — credits and pro have no limit) ────
+    if (!effectivelyPaid && rfpText.length > FREE_CHAR_LIMIT) {
       return NextResponse.json(
         {
           error:
@@ -113,28 +122,42 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 5. Run analysis ───────────────────────────────────────────────────
-    //   Free  → max 1 LLM call (maxRetries=0 in validateWithRetry);
-    //           parse failure → graceful fallback, no second call.
-    //   Paid  → up to 2 calls in validateWithRetry + optional source-fix retry.
-    const { result, meta } = await analyzeRFP(rfpText, { isPaid });
+    const { result, meta } = await analyzeRFP(rfpText, { isPaid: effectivelyPaid });
 
-    // ── 6. Decrement usage counters on success ─────────────────────────
-    const quotaRemaining = isPaid
-      ? (decrementCodeUsage(accessCode), undefined)
-      : decrementQuota(ip, ua);
+    // ── 6. Decrement usage counters on success ────────────────────────────
+    let quotaRemaining: number | undefined;
+    let creditsRemaining: number | undefined;
+
+    if (isPaid) {
+      decrementCodeUsage(accessCode);
+    } else if (isCredits) {
+      const next = decrementCredits(ip, ua);
+      creditsRemaining = next < 0 ? 0 : next;
+    } else {
+      quotaRemaining = decrementQuota(ip, ua);
+    }
+
+    const plan = isPaid ? "paid" : isCredits ? "credits" : "free";
 
     console.log("[telemetry]", {
       doc_length:  rfpText.length,
       timestamp:   new Date().toISOString(),
       duration_ms: Date.now() - startTime,
-      plan:        isPaid ? "paid" : "free",
+      plan,
       partial:     meta.partial,
       success:     true,
+    });
+    console.log("[event]", {
+      name: meta.partial ? "analyze_fallback" : "analyze_success",
+      plan,
+      partial: meta.partial,
+      inputCharCount: rfpText.length,
+      timestamp: new Date().toISOString(),
     });
 
     return NextResponse.json({
       ...result,
-      _rfp_meta: { ...meta, quota_remaining: quotaRemaining },
+      _rfp_meta: { ...meta, plan, quota_remaining: quotaRemaining, credits_remaining: creditsRemaining },
     });
 
   } catch (err) {
@@ -150,6 +173,4 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Avoids importing FREE_MONTHLY_QUOTA (a module-level side-effectful parse)
-// into this expression — just inline the default for the error message.
 const FREE_MONTHLY_QUOTA_MSG = process.env.FREE_MONTHLY_QUOTA ?? "10";

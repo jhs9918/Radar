@@ -40,6 +40,15 @@ export function OutlineTab({ data, rawText, isPaid, onUnlock }: Props) {
 
     return (
       <div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 border rounded px-3 py-2 mb-3">
+          <span>Free preview: pick 1 item to expand. Unlock to view all details + export.</span>
+          <span
+            title="We limit free detailed results to cover AI compute costs."
+            className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted border cursor-help flex-shrink-0 font-medium"
+          >
+            ?
+          </span>
+        </div>
         <div className="mb-3">
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
             Draft scaffold — requires your specifics.

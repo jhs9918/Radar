@@ -82,6 +82,38 @@ export default function PrivacyPage() {
             </p>
           </section>
 
+          <section id="anonymize">
+            <h2 className="font-semibold text-base mb-2">How to Anonymize Your RFP</h2>
+            <p className="text-muted-foreground mb-3">
+              If your RFP contains sensitive company or pricing information, follow these steps
+              before pasting:
+            </p>
+            <ol className="space-y-2 text-muted-foreground list-decimal list-inside">
+              <li>
+                <span className="font-medium text-foreground">Remove identifiers</span> — replace company names,
+                email addresses, phone numbers, and contact names with placeholders
+                (e.g. &ldquo;[VENDOR NAME]&rdquo;).
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Redact pricing</span> — remove specific budget
+                figures or substitute with &ldquo;[AMOUNT REDACTED]&rdquo;.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Paste key sections only</span> — for best results
+                (and to stay within the free character limit), paste the sections that matter most:
+                <strong> Timeline, Scope, Evaluation Criteria, and Submission Requirements</strong>.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Check before submitting</span> — scan the text
+                once more for anything you would not share publicly.
+              </li>
+            </ol>
+            <p className="text-muted-foreground mt-3 text-xs">
+              The AI model only needs the structure and requirements of your RFP, not the specific names.
+              Anonymized text produces equally accurate analysis.
+            </p>
+          </section>
+
           <section>
             <h2 className="font-semibold text-base mb-2">Contact</h2>
             <p className="text-muted-foreground">

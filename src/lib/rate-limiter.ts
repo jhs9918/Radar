@@ -10,7 +10,7 @@
  */
 
 import { createHash } from "crypto";
-import { FREE_MONTHLY_QUOTA, CODE_MONTHLY_MAX } from "./plans";
+import { FREE_MONTHLY_QUOTA, CODE_MONTHLY_MAX, BETA_CODE_MONTHLY_MAX } from "./plans";
 
 const RATE_WINDOW_MS   = parseInt(process.env.RATE_LIMIT_WINDOW_SEC ?? "600", 10) * 1000;
 const RATE_MAX         = parseInt(process.env.RATE_LIMIT_MAX        ?? "10",  10);
@@ -130,6 +130,59 @@ export function decrementCodeUsage(code: string): void {
   const entry = codeUsageStore.get(key) ?? { month: isoMonth(new Date()), count: 0 };
   entry.count += 1;
   codeUsageStore.set(key, entry);
+}
+
+// ---------------------------------------------------------------------------
+// Credits store  (per IP + UA-hash, keyed without month — persists until reset)
+// Server-authoritative; client localStorage is display-only.
+// Production TODO: replace with Redis/DB.
+// ---------------------------------------------------------------------------
+const creditsStore = new Map<string, number>();
+
+function creditsKey(ip: string, ua: string): string {
+  return `credits::${ip}::${hashUA(ua)}`;
+}
+
+export function getCredits(ip: string, ua = "unknown"): number {
+  return creditsStore.get(creditsKey(ip, ua)) ?? 0;
+}
+
+export function addCredits(ip: string, ua: string, amount: number): number {
+  const key = creditsKey(ip, ua);
+  const next = (creditsStore.get(key) ?? 0) + amount;
+  creditsStore.set(key, next);
+  return next;
+}
+
+/** Decrement 1 credit. Returns new count, or -1 if already 0. */
+export function decrementCredits(ip: string, ua = "unknown"): number {
+  const key = creditsKey(ip, ua);
+  const current = creditsStore.get(key) ?? 0;
+  if (current <= 0) return -1;
+  const next = current - 1;
+  creditsStore.set(key, next);
+  return next;
+}
+
+// ---------------------------------------------------------------------------
+// Beta redemption monthly cap  (per code + month)
+// ---------------------------------------------------------------------------
+const betaRedemptionStore = new Map<string, number>();
+
+function betaRedemptionKey(code: string): string {
+  return `beta::${code}::${isoMonth(new Date())}`;
+}
+
+export function checkBetaRedemptionCap(code: string): { ok: boolean; count: number } {
+  const max = BETA_CODE_MONTHLY_MAX;
+  if (max <= 0) return { ok: true, count: 0 };
+  const count = betaRedemptionStore.get(betaRedemptionKey(code)) ?? 0;
+  return { ok: count < max, count };
+}
+
+export function incrementBetaRedemption(code: string): void {
+  const key = betaRedemptionKey(code);
+  betaRedemptionStore.set(key, (betaRedemptionStore.get(key) ?? 0) + 1);
 }
 
 // ---------------------------------------------------------------------------

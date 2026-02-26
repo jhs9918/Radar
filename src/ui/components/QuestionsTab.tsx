@@ -51,6 +51,15 @@ export function QuestionsTab({ data, rawText, isPaid, onUnlock }: Props) {
 
     return (
       <div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 border rounded px-3 py-2 mb-4">
+          <span>Free preview: pick 1 item to expand. Unlock to view all details + export.</span>
+          <span
+            title="We limit free detailed results to cover AI compute costs."
+            className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted border cursor-help flex-shrink-0 font-medium"
+          >
+            ?
+          </span>
+        </div>
         <p className="text-sm text-muted-foreground mb-4">
           {data.questions.length} questions found
         </p>

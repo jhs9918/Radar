@@ -10,14 +10,16 @@ export type PlanType = "free" | "credits" | "subscription";
 export interface ClientPlan {
   plan: PlanType;
   access_code?: string;
+  credits?: number; // display-only; server is authoritative
 }
 
 /** Meta appended to every API response (not part of AnalysisResult schema) */
 export interface AnalyzeMeta {
   partial: boolean;
   hint?: string;
-  plan: "free" | "paid";
+  plan: "free" | "paid" | "credits";
   quota_remaining?: number;
+  credits_remaining?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -31,6 +33,20 @@ export const FREE_CHAR_LIMIT    = parseInt(process.env.FREE_CHAR_LIMIT    ?? "12
  * Prevents a leaked code from being used indefinitely.
  */
 export const CODE_MONTHLY_MAX   = parseInt(process.env.CODE_MONTHLY_MAX ?? "0", 10);
+
+// Beta credits
+export const BETA_CREDITS_AMOUNT  = parseInt(process.env.BETA_CREDITS_AMOUNT  ?? "50",  10);
+export const BETA_CODE_MONTHLY_MAX = parseInt(process.env.BETA_CODE_MONTHLY_MAX ?? "200", 10);
+
+function parseBetaCodes(): ReadonlySet<string> {
+  return new Set(
+    (process.env.BETA_CODES ?? "")
+      .split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+  );
+}
+export const BETA_CODES_SET = parseBetaCodes();
 
 // ---------------------------------------------------------------------------
 // Access code store

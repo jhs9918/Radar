@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileUpload } from "@/src/ui/components/FileUpload";
 import { PlanBadge } from "@/src/ui/components/PlanBadge";
+import { FeedbackButton } from "@/src/ui/components/FeedbackButton";
 import type { ClientPlan } from "@/src/lib/plans";
 
 // Must match FREE_CHAR_LIMIT env default on the server
@@ -153,6 +154,20 @@ function AnalyzePage() {
       }
 
       const result = await response.json();
+      // Sync credits count from server response into localStorage (display only)
+      const meta = result._rfp_meta;
+      if (meta?.credits_remaining !== undefined) {
+        const planRaw = localStorage.getItem("rfp-radar-plan");
+        if (planRaw) {
+          try {
+            const p: ClientPlan = JSON.parse(planRaw);
+            if (p.plan === "credits") {
+              p.credits = meta.credits_remaining;
+              localStorage.setItem("rfp-radar-plan", JSON.stringify(p));
+            }
+          } catch {}
+        }
+      }
       sessionStorage.setItem("rfp-result", JSON.stringify(result));
       router.push("/results");
     } catch (err) {
@@ -258,8 +273,14 @@ function AnalyzePage() {
 
         <p className="mt-4 text-xs text-muted-foreground">
           AI output may be wrong; verify against the original RFP.
-          Your document is not stored — processed in-memory only.
+          Your document is not stored — processed in-memory only.{" "}
+          <a href="/privacy#anonymize" className="underline">
+            How to anonymize
+          </a>
         </p>
+        <div className="mt-3">
+          <FeedbackButton page="analyze" />
+        </div>
       </main>
     </div>
   );
